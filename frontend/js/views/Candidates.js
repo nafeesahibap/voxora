@@ -7,23 +7,29 @@ export default {
     view: async () => {
         let candidates = [];
         try {
-            const response = await fetch('/api/v1/candidates');
+            const response = await fetch('/api/v1/candidates/');
             if (response.ok) {
                 const apiCandidates = await response.json();
                 console.log("API Candidates received:", apiCandidates);
-                candidates = apiCandidates.map(c => ({
-                    id: c.id,
-                    name: `${c.first_name} ${c.last_name || ''}`.trim(),
-                    role: c.current_title || "Applicant",
-                    experience: `${c.experience_years || 0} years`,
-                    status: c.stage || "applied",
-                    matchScore: c.match_score || 0,
-                    skills: c.skills ? c.skills.split(',') : [],
-                    lastUpdated: c.updated_at ? c.updated_at.split('T')[0] : new Date().toISOString().split('T')[0]
-                }));
-                console.log("Mapped candidates for UI:", candidates);
-                // Update Store state to keep it in sync for other views
-                Store.state.candidates = candidates;
+                if (Array.isArray(apiCandidates)) {
+                    candidates = apiCandidates.map(c => ({
+                        id: c.id,
+                        name: `${c.first_name} ${c.last_name || ''}`.trim(),
+                        role: c.current_title || "Applicant",
+                        experience: `${c.experience_years || 0} years`,
+                        status: c.stage || "applied",
+                        matchScore: c.match_score || 0,
+                        skills: c.skills ? c.skills.split(',') : [],
+                        source: c.application_source || 'manual',
+                        appliedViaLink: c.applied_via_link || false,
+                        lastUpdated: c.updated_at ? c.updated_at.split('T')[0] : new Date().toISOString().split('T')[0]
+                    }));
+                    console.log("Mapped candidates for UI:", candidates);
+                    Store.state.candidates = candidates;
+                } else {
+                    console.error("API response is not an array:", apiCandidates);
+                    candidates = Store.state.candidates || [];
+                }
             } else {
                 console.warn("Candidates API failed:", response.status);
                 candidates = Store.state.candidates;
@@ -39,6 +45,10 @@ export default {
                     <div style="flex: 1; max-width: 400px; position: relative;">
                         <i class="ph ph-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
                         <input type="text" id="candidate-search" placeholder="Search candidates..." style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0, 0, 0, 0.2); color: var(--text-primary);">
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                        <button class="filter-chip active" data-filter="all" style="padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid var(--border-subtle); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer; font-size: 0.8rem;">All</button>
+                        <button class="filter-chip" data-filter="public_link" style="padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid var(--border-subtle); background: var(--bg-panel); color: var(--text-secondary); cursor: pointer; font-size: 0.8rem;">Public Link</button>
                     </div>
                     <div style="display: flex; gap: 1rem;">
                         <button id="btn-generate-link" class="btn-outline" style="padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--accent-primary); color: var(--accent-primary); background: transparent;">
@@ -92,9 +102,12 @@ export default {
                                         </div>
                                     </td>
                                     <td style="padding: 1rem; border-bottom: 1px solid var(--border-subtle);">
-                                        <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; background: ${candidate.stage === 'hired' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}; color: ${candidate.stage === 'hired' ? '#10b981' : 'var(--text-secondary)'}; text-transform: capitalize;">
-                                            ${candidate.status || candidate.stage || 'New'}
-                                        </span>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; background: ${candidate.status === 'hired' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}; color: ${candidate.status === 'hired' ? '#10b981' : 'var(--text-secondary)'}; text-transform: capitalize;">
+                                                ${candidate.status || 'New'}
+                                            </span>
+                                            ${candidate.source === 'public_link' ? `<i class="ph ph-link" style="color: #8b5cf6;" title="Applied via Public Link"></i>` : ''}
+                                        </div>
                                     </td>
                                     <td style="padding: 1rem; border-bottom: 1px solid var(--border-subtle);">
                                         <button style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><i class="ph ph-dots-three-vertical"></i></button>
@@ -117,12 +130,38 @@ export default {
             });
         });
 
-        // Search Logic
-        document.getElementById('candidate-search')?.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
+        // Search & Filter Logic
+        const filterRows = () => {
+            const term = document.getElementById('candidate-search')?.value.toLowerCase() || '';
+            const activeFilter = document.querySelector('.filter-chip.active')?.dataset.filter || 'all';
+
             document.querySelectorAll('.candidate-row').forEach(row => {
                 const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(term) ? '' : 'none';
+                const id = row.dataset.id;
+                const candidate = Store.state.candidates.find(c => c.id == id);
+
+                const matchesSearch = text.includes(term);
+                const matchesFilter = activeFilter === 'all' || (candidate && candidate.source === activeFilter);
+
+                row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+            });
+        };
+
+        document.getElementById('candidate-search')?.addEventListener('input', filterRows);
+
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.filter-chip').forEach(c => {
+                    c.classList.remove('active');
+                    c.style.background = 'var(--bg-panel)';
+                    c.style.color = 'var(--text-secondary)';
+                    c.style.borderColor = 'var(--border-subtle)';
+                });
+                chip.classList.add('active');
+                chip.style.background = 'rgba(6, 182, 212, 0.1)';
+                chip.style.color = 'var(--accent-primary)';
+                chip.style.borderColor = 'var(--accent-primary)';
+                filterRows();
             });
         });
 
@@ -174,6 +213,8 @@ export default {
                         status: newCandidate.stage || "applied",
                         matchScore: newCandidate.match_score || 0,
                         skills: newCandidate.skills || "",
+                        source: newCandidate.application_source || "manual",
+                        appliedViaLink: newCandidate.applied_via_link || false,
                         lastUpdated: new Date().toISOString().split('T')[0]
                     };
 

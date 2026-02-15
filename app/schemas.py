@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
-from .models import StageEnum, SourceEnum, FileTypeEnum, SkillCategoryEnum
+from .models import StageEnum, SourceEnum, FileTypeEnum, SkillCategoryEnum, TaskPriorityEnum
 
 class ResumeBase(BaseModel):
     file_name: str
@@ -31,6 +31,9 @@ class CandidateBase(BaseModel):
     stage: StageEnum = StageEnum.screening
     source: SourceEnum = SourceEnum.manual_upload
     job_posting_id: Optional[str] = None
+    application_source: Optional[str] = 'manual'
+    applied_via_link: bool = False
+    application_date: Optional[datetime] = None
 
 class CandidateCreate(CandidateBase):
     pass
@@ -52,6 +55,32 @@ class JobPosting(JobPostingBase):
     id: str
     required_skills: str
     preferred_skills: str
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+class TaskBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    priority: TaskPriorityEnum = TaskPriorityEnum.medium
+    status: str = "pending"
+    progress: int = 0
+    category: Optional[str] = "general"
+    candidate: Optional[str] = None
+    voice_created: str = "false"
+    date: Optional[datetime] = None
+
+class TaskCreate(TaskBase):
+    pass
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    priority: Optional[TaskPriorityEnum] = None
+    status: Optional[str] = None
+    progress: Optional[int] = None
+    category: Optional[str] = None
+
+class Task(TaskBase):
+    id: str
     created_at: datetime
     model_config = {"from_attributes": True}
 

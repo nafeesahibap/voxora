@@ -26,6 +26,66 @@ const routes = [
 
 window.routes = routes;
 
+async function checkNotifications() {
+    try {
+        const response = await fetch('/api/v1/hr/notifications/');
+        if (response.ok) {
+            const notifications = await response.json();
+            const badge = document.getElementById('notification-badge');
+            const bell = document.getElementById('notification-bell');
+            if (badge) {
+                if (notifications.length > 0) {
+                    badge.textContent = notifications.length;
+                    badge.style.display = 'block';
+                    if (bell) bell.style.color = 'var(--accent-primary)';
+
+                    const lastCount = parseInt(localStorage.getItem('voxora_notif_count') || '0');
+                    if (notifications.length > lastCount) {
+                        const latest = notifications[0];
+                        if (window.showToast) window.showToast(latest.message, 'info');
+                        // Optional: Play a subtle notification sound
+                    }
+                    localStorage.setItem('voxora_notif_count', notifications.length);
+                } else {
+                    badge.style.display = 'none';
+                    if (bell) bell.style.color = 'var(--text-secondary)';
+                    localStorage.setItem('voxora_notif_count', '0');
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("Notification poll failed:", err);
+    }
+}
+
+function initNotificationUI() {
+    const bell = document.getElementById('notification-bell');
+    if (bell) {
+        bell.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/v1/hr/notifications/mark-read/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ all: true })
+                });
+                if (response.ok) {
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) badge.style.display = 'none';
+                    bell.style.color = 'var(--text-secondary)';
+                    localStorage.setItem('voxora_notif_count', '0');
+                    if (window.showToast) window.showToast("Cleared all notifications", "success");
+                }
+            } catch (err) {
+                console.error("Mark read error:", err);
+            }
+        });
+    }
+
+    // Initial check and start poll
+    checkNotifications();
+    setInterval(checkNotifications, 30000); // 30 seconds
+}
+
 function initApp() {
     if (window.appInitialized) return;
     window.appInitialized = true;
@@ -34,6 +94,7 @@ function initApp() {
     try {
         window.router = new Router(routes);
         new Sidebar();
+        initNotificationUI();
         console.log("App: Ready.");
     } catch (err) {
         console.error("App Init Error:", err);

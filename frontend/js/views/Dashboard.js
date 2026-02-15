@@ -4,7 +4,10 @@ export default {
     title: "Human Resources Overview",
     subtitle: "Welcome back, Alex. Here's what's happening today.",
 
-    view: () => {
+    view: async () => {
+        // Initial fetch to ensure real-time data
+        await Store.initTasks();
+
         const candidates = Store.state.candidates || [];
         const tasks = Store.state.tasks || [];
         const interviews = Store.state.interviews || [];
@@ -88,6 +91,42 @@ export default {
                                 <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(239, 68, 68, 0.15); color: #ef4444; border-radius: 4px; text-transform: uppercase; font-weight: 600;">High</span>
                             </div>
                         `).join('') : '<p style="color: var(--text-muted); padding: 1rem;">No priority tasks. Great job!</p>'}
+                    </div>
+                </div>
+
+                <!-- Recent Applications (Public Links) -->
+                <div class="card card-g-6">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>Recent Public Applications</h3>
+                        <span style="font-size: 0.75rem; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; padding: 2px 8px; border-radius: 4px; font-weight: 600;">NEW</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+                        ${(() => {
+                const today = new Date().toISOString().split('T')[0];
+                const recentApps = candidates.filter(c =>
+                    (c.source === 'public_link' || c.appliedViaLink) &&
+                    (c.lastUpdated === today)
+                ).slice(0, 3);
+
+                if (recentApps.length > 0) {
+                    return recentApps.map(c => `
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.1); border-radius: 8px;">
+                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #8b5cf6; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.8rem;">
+                                            ${c.name.charAt(0)}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; font-size: 0.9rem;">${c.name}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${c.role} · <span style="color:#8b5cf6">via Link</span></div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-weight: 700; color: ${c.matchScore >= 80 ? '#10b981' : '#f59e0b'}; font-size: 0.9rem;">${c.matchScore}%</div>
+                                            <div style="font-size: 0.65rem; color: var(--text-muted);">Match</div>
+                                        </div>
+                                    </div>
+                                `).join('');
+                }
+                return '<p style="color: var(--text-muted); padding: 1rem;">No recent applications today.</p>';
+            })()}
                     </div>
                 </div>
 

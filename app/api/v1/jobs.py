@@ -6,7 +6,7 @@ from app.models.job import JobPosting
 from app.schemas import JobPosting as JobSchema
 import uuid
 
-router = APIRouter(prefix="/jobs", tags=["jobs"])
+router = APIRouter(prefix="", tags=["jobs"])
 
 @router.get("/", response_model=List[JobSchema])
 def list_jobs(db: Session = Depends(get_db)):

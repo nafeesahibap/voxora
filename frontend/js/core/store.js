@@ -8,10 +8,10 @@ export const Store = {
             { id: 'c5', name: "Alex Rivera", role: "Backend Engineer", experience: "5 years", status: "applied", matchScore: 72, lastUpdated: "2026-02-15" }
         ],
         tasks: [
-            { id: 101, title: "Review Offer Letter for Michael", candidate: "Michael Chen", priority: "high", status: "pending", dueDate: "2026-02-14", category: "recruitment" },
-            { id: 102, title: "Schedule Onboarding for New Hires", candidate: "", priority: "medium", status: "pending", dueDate: "2026-02-15", category: "onboarding" },
-            { id: 103, title: "Update Q4 Compliance Policies", candidate: "", priority: "high", status: "completed", dueDate: "2026-02-10", category: "compliance" },
-            { id: 104, title: "Feedback Sync with Engineering Lead", candidate: "", priority: "low", status: "pending", dueDate: "2026-02-16", category: "interview" }
+            { id: 'm1', title: "Review Offer Letter for Michael", candidate: "Michael Chen", priority: "high", status: "pending", date: "2026-02-14T10:00:00Z", category: "recruitment", voice_created: "false" },
+            { id: 'm2', title: "Schedule Onboarding for New Hires", candidate: "", priority: "medium", status: "pending", date: "2026-02-15T09:00:00Z", category: "onboarding", voice_created: "false" },
+            { id: 'm3', title: "Update Q4 Compliance Policies", candidate: "", priority: "high", status: "completed", date: "2026-02-10T08:00:00Z", category: "compliance", voice_created: "false" },
+            { id: 'm4', title: "Feedback Sync with Engineering Lead", candidate: "", priority: "low", status: "pending", date: "2026-02-16T11:00:00Z", category: "interview", voice_created: "false" }
         ],
         interviews: [
             { id: 1, candidate: "Sarah Williams", role: "Senior Frontend Dev", time: "10:00 AM", status: "Scheduled", sentiment: "Neutral", type: "Technical", date: "2026-02-13" },
@@ -35,30 +35,79 @@ export const Store = {
     },
 
     // Actions
-    addTask(task) {
-        this.state.tasks.unshift(task);
-        this.notify();
+    async initTasks() {
+        try {
+            const response = await fetch('/api/v1/tasks/');
+            if (response.ok) {
+                this.state.tasks = await response.json();
+                this.notify();
+            }
+        } catch (err) { console.error("Init tasks error:", err); }
     },
 
-    updateTaskStatus(id) {
+    async addTask(task) {
+        try {
+            const response = await fetch('/api/v1/tasks/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task)
+            });
+            if (response.ok) {
+                const newTask = await response.json();
+                this.state.tasks.unshift(newTask);
+                this.notify();
+                return newTask;
+            }
+        } catch (err) { console.error("Add task error:", err); }
+    },
+
+    async updateTaskStatus(id) {
         const task = this.state.tasks.find(t => t.id === id);
         if (task) {
-            task.status = task.status === 'completed' ? 'pending' : 'completed';
-            this.notify();
+            const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+            const newProgress = newStatus === 'completed' ? 100 : 0;
+
+            try {
+                const response = await fetch(`/api/v1/tasks/${id}/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus, progress: newProgress })
+                });
+                if (response.ok) {
+                    const updated = await response.json();
+                    Object.assign(task, updated);
+                    this.notify();
+                }
+            } catch (err) { console.error("Update status error:", err); }
         }
     },
 
-    updateTask(updatedTask) {
-        const index = this.state.tasks.findIndex(t => t.id === updatedTask.id);
-        if (index !== -1) {
-            this.state.tasks[index] = updatedTask;
-            this.notify();
-        }
+    async updateTask(id, updates) {
+        try {
+            const response = await fetch(`/api/v1/tasks/${id}/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                const index = this.state.tasks.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    this.state.tasks[index] = updated;
+                    this.notify();
+                }
+            }
+        } catch (err) { console.error("Update task error:", err); }
     },
 
-    deleteTask(id) {
-        this.state.tasks = this.state.tasks.filter(t => t.id !== id);
-        this.notify();
+    async deleteTask(id) {
+        try {
+            const response = await fetch(`/api/v1/tasks/${id}/`, { method: 'DELETE' });
+            if (response.ok) {
+                this.state.tasks = this.state.tasks.filter(t => t.id !== id);
+                this.notify();
+            }
+        } catch (err) { console.error("Delete task error:", err); }
     },
 
     addCandidate(candidate) {

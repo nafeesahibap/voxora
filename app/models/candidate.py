@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, Float, Boolean
 from sqlalchemy.orm import relationship
 from app.database.base import Base
 import enum
@@ -20,6 +20,9 @@ class Candidate(Base):
     skills = Column(Text)  # JSON string
     stage = Column(Enum(StageEnum), default=StageEnum.screening)
     source = Column(Enum(SourceEnum), default=SourceEnum.manual_upload)
+    application_source = Column(String, default='manual') # Added for tracking: manual, public_link
+    applied_via_link = Column(Boolean, default=False)
+    application_date = Column(DateTime)
     job_posting_id = Column(String, ForeignKey("jobposting.id"))
     match_score = Column(Integer, default=0)
     notes = Column(Text)

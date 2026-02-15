@@ -21,3 +21,7 @@ class SkillCategoryEnum(str, enum.Enum):
     soft_skills = "soft_skills"
     languages = "languages"
     other = "other"
+class TaskPriorityEnum(str, enum.Enum):
+    high = "high"
+    medium = "medium"
+    low = "low"
