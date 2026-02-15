@@ -1,0 +1,75 @@
+:root {
+    --minimal-bg: #ffffff;
+    --minimal-card: #f8f9fa;
+    --minimal-text-primary: #2c3e50;
+    --minimal-text-secondary: #5a6c7d;
+    --minimal-border: #e9ecef;
+    --minimal-accent: #4A90E2;
+    --minimal-success: #2ecc71;
+    --minimal-warning: #f39c12;
+    --minimal-danger: #e74c3c;
+}
+
+.theme-minimal {
+    background-color: var(--minimal-bg) !important;
+    color: var(--minimal-text-primary) !important;
+}
+
+.theme-minimal .card {
+    background: var(--minimal-card) !important;
+    border: 1px solid var(--minimal-border) !important;
+    color: var(--minimal-text-primary) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.theme-minimal .card-header h3,
+.theme-minimal .page-title {
+    color: var(--minimal-text-primary) !important;
+}
+
+.theme-minimal .page-subtitle,
+.theme-minimal .card-header p {
+    color: var(--minimal-text-secondary) !important;
+}
+
+.theme-minimal .nav-item {
+    color: var(--minimal-text-secondary) !important;
+}
+
+.theme-minimal .nav-item.active {
+    color: var(--minimal-accent) !important;
+    background: rgba(74, 144, 226, 0.1) !important;
+}
+
+.theme-minimal table th {
+    background: var(--minimal-card);
+    color: var(--minimal-text-secondary);
+    border-bottom: 2px solid var(--minimal-border);
+}
+
+.theme-minimal table td {
+    color: var(--minimal-text-primary);
+    border-bottom: 1px solid var(--minimal-border);
+}
+
+.theme-minimal .action-btn {
+    background: var(--minimal-accent) !important;
+    color: white !important;
+}
+
+.theme-minimal .btn-outline {
+    border: 1px solid var(--minimal-accent) !important;
+    color: var(--minimal-accent) !important;
+    background: transparent !important;
+}
+
+/* Specific component overrides for minimal theme */
+.theme-minimal .left-panel {
+    background: #fcfcfc !important;
+    border-right: 1px solid var(--minimal-border);
+}
+
+.theme-minimal .top-nav {
+    background: white !important;
+    border-bottom: 1px solid var(--minimal-border);
+}

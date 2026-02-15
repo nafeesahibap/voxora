@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Management | Voxora Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .urgent-tag {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .call-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background 0.2s;
+        }
+
+        .call-list-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .call-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .caller-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .caller-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-panel);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .summary-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 500px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .summary-modal.open {
+            opacity: 1;
+            pointer-events: all;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .summary-point {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .summary-point i {
+            color: var(--accent-primary);
+            margin-top: 3px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 2. LEFT PANEL -->
+        <aside class="left-panel">
+            <div class="brand">
+                <i class="ph-fill ph-waves"></i><span>VOXORA</span>
+            </div>
+            <div class="avatar-container">
+                <div class="avatar-halo"></div>
+                <img src="assets/avatar.png" alt="AI Avatar" class="avatar-img">
+            </div>
+            <div class="voice-status">
+                <div class="chat-bubble">“Checking your recent calls, James.”</div>
+                <div class="mic-btn-container">
+                    <div class="mic-btn-ring"></div>
+                    <div class="mic-btn"><i class="ph-fill ph-microphone"></i></div>
+                </div>
+                <div class="status-text">Standby</div>
+            </div>
+        </aside>
+
+        <!-- 1. TOP NAVIGATION -->
+        <nav class="top-nav">
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-item"><i class="ph ph-squares-four"></i> Dashboard</a>
+                <a href="#" class="nav-item"><i class="ph ph-users-three"></i> Meetings</a>
+                <a href="#" class="nav-item"><i class="ph ph-calendar-check"></i> Bookings</a>
+                <a href="calls.html" class="nav-item active"><i class="ph ph-phone-call"></i> Calls</a>
+                <a href="#" class="nav-item"><i class="ph ph-chart-line-up"></i> Market</a>
+                <a href="#" class="nav-item"><i class="ph ph-scroll"></i> Reports</a>
+                <a href="#" class="nav-item"><i class="ph ph-shield-check"></i> Security</a>
+            </div>
+            <div class="user-area">
+                <div class="time-display" id="clock">11:05 AM</div>
+                <div class="user-profile">
+                    <div class="user-greeting">
+                        <h4>James Anderson</h4><span>Premium Workspace</span>
+                    </div>
+                    <div class="profile-pic"><i class="ph-bold ph-user"></i></div>
+                    <a href="index.html"><i class="ph ph-sign-out"></i></a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 3. MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1 class="page-title">Call Management</h1>
+                    <p class="page-subtitle">Review recent communications and AI summaries.</p>
+                </div>
+                <button onclick="window.callManager.startSession()" class="btn-primary">
+                    <i class="ph-bold ph-phone-call"></i> Start AI Session
+                </button>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Urgent Calls -->
+                <div class="card card-g-12" style="border-left: 4px solid #f87171;">
+                    <div class="card-header">
+                        <h3 style="color: #f87171;">Urgent / Missed</h3>
+                        <div class="urgent-tag">Action Required</div>
+                    </div>
+                    <div class="call-list-item">
+                        <div class="caller-info">
+                            <div class="caller-avatar" style="background: rgba(239, 68, 68, 0.1); color: #f87171;"><i
+                                    class="ph-bold ph-phone-x"></i></div>
+                            <div>
+                                <h4 style="font-weight: 600;">Sarah Connor (CEO, Skynet)</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">Missed Call • 10 mins ago</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button onclick="sendMessage('Sarah Connor')" class="btn-outline"
+                                style="border-radius: 99px; padding: 0.5rem 1rem; font-size: 0.85rem;"><i
+                                    class="ph-bold ph-chats"></i> Message</button>
+                            <button onclick="initiateCall('Sarah Connor')" class="btn-primary"
+                                style="border-radius: 99px; padding: 0.5rem 1rem; font-size: 0.85rem; background: #f87171; border: none;"><i
+                                    class="ph-bold ph-phone-outgoing"></i> Call Back</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Call -->
+                <div class="card card-g-6">
+                    <div class="card-header">
+                        <h3>Last Conversation</h3>
+                        <i class="ph ph-clock-counter-clockwise"></i>
+                    </div>
+                    <div class="call-list-item" style="border: none; padding-bottom: 0;">
+                        <div class="caller-info">
+                            <div class="caller-avatar"><i class="ph-bold ph-user"></i></div>
+                            <div>
+                                <h4>Michael Ross (Legal)</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">Incoming • 14 mins duration •
+                                    Today 9:30 AM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                            AI Audio recording available. Transcript processing complete.
+                        </p>
+                        <button onclick="summarizeCall('last')" class="btn-full"
+                            style="width: 100%; border-radius: 8px; font-size: 0.9rem; background: var(--accent-secondary);">
+                            <i class="ph-bold ph-magic-wand"></i> Generate AI Summary
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Call History -->
+                <div class="card card-g-6">
+                    <div class="card-header">
+                        <h3>Recent History</h3>
+                        <i class="ph ph-list-dashes"></i>
+                    </div>
+                    <div class="call-list-item">
+                        <div class="caller-info">
+                            <div class="caller-avatar"><i class="ph-bold ph-buildings"></i></div>
+                            <div>
+                                <h4>Apex Corp Support</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Outgoing • 5 mins • Yesterday
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="summarizeCall('apex')" class="btn-outline"
+                            style="padding: 0.4rem; border-radius: 6px;"><i class="ph-bold ph-file-text"></i></button>
+                    </div>
+                    <div class="call-list-item">
+                        <div class="caller-info">
+                            <div class="caller-avatar"><i class="ph-bold ph-user"></i></div>
+                            <div>
+                                <h4>David Chen</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Incoming • 22 mins • Yesterday
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="summarizeCall('david')" class="btn-outline"
+                            style="padding: 0.4rem; border-radius: 6px;"><i class="ph-bold ph-file-text"></i></button>
+                    </div>
+                    <div class="call-list-item">
+                        <div class="caller-info">
+                            <div class="caller-avatar"><i class="ph-bold ph-user"></i></div>
+                            <div>
+                                <h4>Emily Blunt (HR)</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Missed • 2 days ago</p>
+                            </div>
+                        </div>
+                        <button class="btn-outline" style="padding: 0.4rem; border-radius: 6px; opacity: 0.5;"
+                            disabled><i class="ph-bold ph-prohibit"></i></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Active Call Overlay -->
+    <div id="callOverlay" class="call-overlay">
+        <div class="call-avatar-large">
+            <div class="pulse-ring-large"></div>
+            <img src="assets/avatar.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+        </div>
+        <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Voxora AI</h2>
+        <p id="callStatus" style="color: var(--accent-primary); letter-spacing: 2px; margin-bottom: 2rem;">CONNECTING...
+        </p>
+
+        <div id="callTimer" class="call-timer">00:00</div>
+
+        <div class="call-controls">
+            <button onclick="window.callManager.toggleMute()" class="call-btn btn-mute"><i
+                    class="ph-bold ph-microphone-slash"></i></button>
+            <button onclick="window.callManager.endSession()" class="call-btn btn-hangup"><i
+                    class="ph-fill ph-phone-disconnect"></i></button>
+        </div>
+    </div>
+
+    <!-- Summary Modal -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="summary-modal" id="summaryModal">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 700;">AI Call Summary</h2>
+            <button onclick="closeModal()"
+                style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><i
+                    class="ph-bold ph-x" style="font-size: 1.25rem;"></i></button>
+        </div>
+
+        <div id="summaryContent">
+            <!-- Content injected via JS -->
+            <div style="text-align: center; color: var(--text-muted);">
+                <i class="ph-duotone ph-spinner-gap" style="font-size: 2rem; animation: spin 1s linear infinite;"></i>
+                <p style="margin-top: 1rem;">Analyzing audio transcript...</p>
+            </div>
+        </div>
+
+        <button onclick="closeModal()" class="btn-full" style="margin-top: 2rem;">Close Report</button>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/calls.js"></script>
+    <script src="js/voice_engine.js"></script>
+    <script src="js/active_call.js"></script>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateClock, 1000); updateClock();
+    </script>
+</body>
+
+</html>
