@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Dashboard | Voxora Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 2. LEFT PANEL – AI AVATAR & VOICE -->
+        <aside class="left-panel">
+            <div class="brand">
+                <i class="ph-fill ph-waves"></i>
+                <span>VOXORA</span>
+            </div>
+
+            <div class="avatar-container">
+                <div class="avatar-halo"></div>
+                <img src="assets/avatar.png" alt="AI Avatar" class="avatar-img">
+            </div>
+
+            <div class="voice-status">
+                <div class="chat-bubble">
+                    “Good morning! Shall we review your tasks?”
+                </div>
+
+                <div class="mic-btn-container">
+                    <div class="mic-btn-ring"></div>
+                    <div class="mic-btn">
+                        <i class="ph-fill ph-microphone"></i>
+                    </div>
+                </div>
+
+                <div class="status-text">Listening...</div>
+            </div>
+        </aside>
+
+        <!-- 1. TOP NAVIGATION BAR -->
+        <nav class="top-nav">
+            <div class="nav-links">
+                <a href="#" class="nav-item active" id="nav-dashboard"><i class="ph ph-squares-four"></i> Dashboard</a>
+                <a href="#" class="nav-item" id="nav-tasks"><i class="ph ph-check-square"></i> My Tasks</a>
+                <a href="#" class="nav-item" id="nav-calendar"><i class="ph ph-calendar"></i> Calendar</a>
+                <a href="#" class="nav-item" id="nav-insights"><i class="ph ph-chart-line-up"></i> Insights</a>
+                <a href="#" class="nav-item" id="nav-settings"><i class="ph ph-gear"></i> Settings</a>
+            </div>
+
+            <div class="user-area">
+                <div class="time-display" id="clock">--:--</div>
+                <div class="user-profile">
+                    <div class="user-greeting">
+                        <h4>Sarah Jenkins</h4>
+                        <span>Personal Plan</span>
+                    </div>
+                    <div class="profile-pic">
+                        <i class="ph-bold ph-user"></i>
+                    </div>
+                    <a href="index.html" style="color: var(--text-muted); font-size: 1.25rem;"><i
+                            class="ph ph-sign-out"></i></a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 3. MAIN CONTENT AREA -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">My Day</h1>
+                <p class="page-subtitle">Stay focused and productive.</p>
+            </div>
+
+            <div class="dashboard-grid" id="personal-dashboard-content">
+                <!-- Content will be injected by js/dashboard-personal.js -->
+                <div class="card card-g-12">
+                    <div class="card-header">
+                        <h3>Loading Your Day...</h3>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard-personal.js"></script>
+    <script>
+        // Real-time clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+
+</html>

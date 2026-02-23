@@ -1,0 +1,10 @@
+# Production Config
+database:
+  type: postgres
+  # url will be loaded from env vars
+
+logging:
+  level: INFO
+
+cors:
+  allow_all: false
