@@ -190,6 +190,17 @@ export default {
     },
 
     afterRender: () => {
+        // Live updates from Store
+        if (!Store._dashboardSubscribed) {
+            Store.subscribe(() => {
+                // If we are currently on the dashboard, re-render to update stats
+                if (window.location.hash === '#/hr/dashboard' || window.location.pathname === '/hr/dashboard') {
+                    window.router.handleRoute();
+                }
+            });
+            Store._dashboardSubscribed = true;
+        }
+
         // Clickable stat cards
         document.querySelectorAll('.stat-card').forEach(card => {
             card.addEventListener('click', () => {

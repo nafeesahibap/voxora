@@ -3,7 +3,7 @@ import Dashboard from './views/Dashboard.js';
 import Candidates from './views/Candidates.js';
 import CandidateDetails from './views/CandidateDetails.js';
 import Tasks from './views/Tasks.js';
-import Interviews from './views/Interviews.js';
+import Interviews from './views/Interviews_v2.js';
 import Analytics from './views/Analytics.js';
 import Sidebar from './components/Sidebar.js';
 import CandidateCompare from './views/CandidateCompare.js';

@@ -13,8 +13,10 @@ class Task(Base):
     status = Column(String, default="pending") # pending, completed
     progress = Column(Integer, default=0)
     date = Column(DateTime, default=datetime.utcnow)
+    deadline = Column(DateTime, nullable=True)
     category = Column(String)
     candidate = Column(String)
     voice_created = Column(String, default="false") # "true" or "false"
     owner_id = Column(Integer, ForeignKey("user.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -129,34 +129,46 @@ export default {
                     <div>
                         <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Interview Type</label>
                         <select id="interview-type" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text-primary);">
-                            <option>Technical</option>
-                            <option>HR</option>
-                            <option>Final</option>
+                            <option value="Technical">Technical</option>
+                            <option value="HR">HR</option>
+                            <option value="Final">Final</option>
+                            <option value="Screening">Screening</option>
                         </select>
                     </div>
                     <button id="btn-confirm-interview" class="action-btn" style="width: 100%; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem;">
-                        <i class="ph-bold ph-calendar-check"></i> Confirm Interview
+                        <i class="ph-bold ph-calendar-check"></i> Schedule Now
                     </button>
                 </div>
             `);
 
-            document.getElementById('btn-confirm-interview')?.addEventListener('click', () => {
+            document.getElementById('btn-confirm-interview')?.addEventListener('click', async () => {
                 const date = document.getElementById('interview-date').value || new Date().toISOString().split('T')[0];
                 const time = document.getElementById('interview-time').value || '10:00';
                 const type = document.getElementById('interview-type').value;
 
-                Store.addInterview({
-                    id: Date.now(),
-                    candidate: candidate.name,
-                    role: candidate.role,
-                    time: time,
-                    status: 'Scheduled',
-                    type: type,
-                    date: date
-                });
+                if (Store.addInterviewApi) {
+                    await Store.addInterviewApi({
+                        candidate_id: candidate.id,
+                        candidate: candidate.name,
+                        date: date,
+                        time: time,
+                        type: type,
+                        status: 'Scheduled'
+                    });
+                } else {
+                    Store.addInterview({
+                        id: Date.now(),
+                        candidate: candidate.name,
+                        role: candidate.role,
+                        time: time,
+                        status: 'Scheduled',
+                        type: type,
+                        date: date
+                    });
+                }
 
                 closeModal();
-                showToast(`Interview scheduled for ${candidate.name} on ${date} at ${time}`);
+                showToast(`Interview scheduled for ${candidate.name} on ${date} at ${time}`, 'success');
             });
         });
 

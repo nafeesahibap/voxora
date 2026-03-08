@@ -1,3 +1,5 @@
+import '../voice_engine.js';
+
 export const Store = {
     state: {
         candidates: [
@@ -7,12 +9,7 @@ export const Store = {
             { id: 'c4', name: "David Miller", role: "DevOps Engineer", experience: "6 years", status: "applied", matchScore: 65, lastUpdated: "2026-02-12" },
             { id: 'c5', name: "Alex Rivera", role: "Backend Engineer", experience: "5 years", status: "applied", matchScore: 72, lastUpdated: "2026-02-15" }
         ],
-        tasks: [
-            { id: 'm1', title: "Review Offer Letter for Michael", candidate: "Michael Chen", priority: "high", status: "pending", date: "2026-02-14T10:00:00Z", category: "recruitment", voice_created: "false" },
-            { id: 'm2', title: "Schedule Onboarding for New Hires", candidate: "", priority: "medium", status: "pending", date: "2026-02-15T09:00:00Z", category: "onboarding", voice_created: "false" },
-            { id: 'm3', title: "Update Q4 Compliance Policies", candidate: "", priority: "high", status: "completed", date: "2026-02-10T08:00:00Z", category: "compliance", voice_created: "false" },
-            { id: 'm4', title: "Feedback Sync with Engineering Lead", candidate: "", priority: "low", status: "pending", date: "2026-02-16T11:00:00Z", category: "interview", voice_created: "false" }
-        ],
+        tasks: [],
         interviews: [
             { id: 1, candidate: "Sarah Williams", role: "Senior Frontend Dev", time: "10:00 AM", status: "Scheduled", sentiment: "Neutral", type: "Technical", date: "2026-02-13", zoom_link: "https://zoom.us/j/123456789" },
             { id: 2, candidate: "Michael Chen", role: "Product Manager", time: "11:30 AM", status: "Completed", sentiment: "High", type: "Final", date: "2026-02-13" }
@@ -45,20 +42,22 @@ export const Store = {
         } catch (err) { console.error("Init tasks error:", err); }
     },
 
-    async addTask(task) {
-        try {
-            const response = await fetch('/api/v1/tasks/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(task)
-            });
-            if (response.ok) {
-                const newTask = await response.json();
-                this.state.tasks.unshift(newTask);
-                this.notify();
-                return newTask;
-            }
-        } catch (err) { console.error("Add task error:", err); }
+    async addTask(taskData) {
+        const response = await fetch('/api/v1/tasks/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+        });
+
+        if (!response.ok) return null;
+
+        const newTask = await response.json();
+
+        this.state.tasks.unshift(newTask);
+
+        this.notify();
+
+        return newTask;
     },
 
     async updateTaskStatus(id) {
@@ -68,7 +67,7 @@ export const Store = {
             const newProgress = newStatus === 'completed' ? 100 : 0;
 
             try {
-                const response = await fetch(`/api/v1/tasks/${id}/`, {
+                const response = await fetch(`/api/v1/tasks/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus, progress: newProgress })
@@ -84,7 +83,7 @@ export const Store = {
 
     async updateTask(id, updates) {
         try {
-            const response = await fetch(`/api/v1/tasks/${id}/`, {
+            const response = await fetch(`/api/v1/tasks/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
@@ -96,13 +95,14 @@ export const Store = {
                     this.state.tasks[index] = updated;
                     this.notify();
                 }
+                return updated;
             }
-        } catch (err) { console.error("Update task error:", err); }
+        } catch (err) { console.error("Update task error:", err); return null; }
     },
 
     async deleteTask(id) {
         try {
-            const response = await fetch(`/api/v1/tasks/${id}/`, { method: 'DELETE' });
+            const response = await fetch(`/api/v1/tasks/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 this.state.tasks = this.state.tasks.filter(t => t.id !== id);
                 this.notify();
@@ -136,10 +136,20 @@ export const Store = {
     },
 
     async addInterviewApi(interview) {
+        // Find candidate ID if name is provided instead of ID (fallback for legacy/simple calls)
+        let candidateId = interview.candidate_id;
+        if (!candidateId && interview.candidate) {
+            const cand = this.state.candidates.find(c =>
+                c.name === interview.candidate ||
+                `${c.first_name} ${c.last_name}`.trim() === interview.candidate
+            );
+            candidateId = cand ? cand.id : interview.candidate; // Fallback to name if not found
+        }
+
         const payload = {
-            candidate_id: interview.candidate_id || interview.candidate,
-            job_posting_id: interview.job_posting_id || 'j1',
-            interview_date: interview.date || new Date().toISOString(),
+            candidate_id: String(candidateId || ''),
+            job_posting_id: String(interview.job_posting_id || 'j1'),
+            interview_date: interview.date ? new Date(interview.date).toISOString() : new Date().toISOString(),
             interview_time: interview.time || '10:00 AM',
             interview_type: interview.type || 'Technical',
             status: interview.status || 'Scheduled',
@@ -158,8 +168,15 @@ export const Store = {
                 this.state.interviews.push(newInt);
                 this.notify();
                 return newInt;
+            } else {
+                const error = await response.text();
+                console.error("Add interview API failed:", response.status, error);
+                return null;
             }
-        } catch (err) { console.error("Add interview error:", err); }
+        } catch (err) {
+            console.error("Add interview error:", err);
+            return null;
+        }
     },
 
     async updateInterview(id, updates) {

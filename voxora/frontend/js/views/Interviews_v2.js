@@ -1,14 +1,13 @@
 import { Store } from '../core/store.js';
 
+console.log("Voxora: Interviews_v2 loaded");
+
 export default {
     title: "Interview Scheduling",
     subtitle: "Manage upcoming interviews and reviews.",
 
     view: async () => {
         await Store.initInterviews();
-
-        // Helper to get color for interview type
-        const typeColors = { Technical: '#3b82f6', HR: '#f472b6', Final: '#10b981', Screening: '#f59e0b' };
 
         return `
             <div class="card card-g-12">
@@ -58,6 +57,7 @@ export default {
     },
 
     afterRender: () => {
+        const typeColors = { Technical: '#3b82f6', HR: '#f472b6', Final: '#10b981', Screening: '#f59e0b' };
         let interviews = Store.state.interviews || [];
 
         // Render Function
@@ -79,19 +79,14 @@ export default {
                 const time = i.interview_time || i.time;
                 const date = i.interview_date ? new Date(i.interview_date).toLocaleDateString() : (i.date || 'Today');
                 const status = i.status || 'Scheduled';
-                const zoomLink = i.zoom_link;
+                const zoomLink = i.zoom_link || 'https://zoom.us/j/voxora-demo';
+                const showZoom = (status.toLowerCase() === 'scheduled');
 
-                // Color Logic
-                const typeColors = { Technical: '#3b82f6', HR: '#f472b6', Final: '#10b981', Screening: '#f59e0b' };
-                const borderColor = status === 'Completed' ? 'gray' : (typeColors[type] || 'var(--accent-primary)');
-
-                // Debugging
-                console.log(`Interview ${i.id}: Status=${status}, Zoom=${zoomLink}`);
-
-                const showZoom = (status.toLowerCase() === 'scheduled') && zoomLink;
+                // Directly use typeColors here to avoid any scope issues
+                const bColor = typeColors[type] || '#64748b';
 
                 return `
-                <div class="interview-row" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.03); border-left: 3px solid ${borderColor}; margin-bottom: 0.75rem; border-radius: 4px; transition: background 0.2s;">
+                <div class="interview-row" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.03); border-left: 3px solid ${bColor}; margin-bottom: 0.75rem; border-radius: 4px; transition: background 0.2s;">
                     <div style="display: flex; gap: 1rem; align-items: center; cursor: pointer; flex: 1;" onclick="window.router.navigateTo('/hr/interviews/detail/${i.id}')">
                         <div style="text-align: center; min-width: 80px;">
                             <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">${time}</div>
@@ -108,7 +103,7 @@ export default {
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                         ${showZoom ?
                         `<a href="${zoomLink}" target="_blank" class="btn-outline" style="text-decoration: none; padding: 0.4rem 0.8rem; font-size: 0.85rem; color: #3b82f6; border-color: #3b82f6; display: flex; align-items: center; gap: 0.5rem;" title="Join Zoom">
-                                <i class="ph-bold ph-video-camera"></i> Join
+                                <i class="ph-bold ph-video-camera"></i> Join Now
                              </a>` : ''
                     }
                         
@@ -182,8 +177,11 @@ export default {
             window.openModal('Schedule New Interview', `
                 <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                     <div>
-                        <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Candidate Name</label>
-                        <input type="text" id="new-int-candidate" placeholder="Candidate Name" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text-primary);">
+                        <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Candidate</label>
+                        <select id="new-int-candidate-id" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text-primary);">
+                            <option value="">Select a candidate</option>
+                            ${(Store.state.candidates || []).map(c => `<option value="${c.id}">${c.name || `${c.first_name} ${c.last_name}`}</option>`).join('')}
+                        </select>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
@@ -199,8 +197,9 @@ export default {
                         <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Type</label>
                         <select id="new-int-type" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text-primary);">
                             <option value="Technical">Technical</option>
-                            <option value="HR">HR Screen</option>
-                            <option value="Final">Final Round</option>
+                            <option value="HR">HR</option>
+                            <option value="Final">Final</option>
+                            <option value="Screening">Screening</option>
                         </select>
                     </div>
                     <div>
@@ -208,7 +207,7 @@ export default {
                         <input type="text" id="new-int-zoom" placeholder="https://zoom.us/j/..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text-primary);">
                     </div>
                     <button id="btn-confirm-new-int" class="action-btn" style="width: 100%; padding: 0.75rem; border-radius: 8px;">
-                        <i class="ph-bold ph-calendar-check"></i> Schedule Interview
+                        <i class="ph-bold ph-calendar-check"></i> Schedule Now
                     </button>
                 </div>
             `);
@@ -217,21 +216,25 @@ export default {
                 const confirmBtn = document.getElementById('btn-confirm-new-int');
                 if (confirmBtn) {
                     confirmBtn.addEventListener('click', async () => {
-                        const candidate = document.getElementById('new-int-candidate').value;
+                        const candidateId = document.getElementById('new-int-candidate-id').value;
                         const date = document.getElementById('new-int-date').value;
                         const time = document.getElementById('new-int-time').value;
                         const type = document.getElementById('new-int-type').value;
                         const zoom = document.getElementById('new-int-zoom').value;
 
-                        if (!candidate || !date) {
-                            if (window.showToast) window.showToast('Please fill in required fields', 'error');
+                        if (!candidateId || !date) {
+                            if (window.showToast) window.showToast('Please select a candidate and date', 'error');
                             return;
                         }
+
+                        // Get candidate object for fallback/state sync
+                        const candidate = (Store.state.candidates || []).find(c => c.id == candidateId);
 
                         // Use API method
                         if (Store.addInterviewApi) {
                             await Store.addInterviewApi({
-                                candidate: candidate,
+                                candidate_id: candidateId,
+                                candidate: candidate ? candidate.name : '',
                                 date: date,
                                 time: time,
                                 type: type,

@@ -6,12 +6,12 @@ from app.models.notification import Notification
 
 router = APIRouter(prefix="", tags=["hr"])
 
-@router.get("/notifications")
+@router.get("/notifications/")
 def get_notifications(db: Session = Depends(get_db)):
     """Get all unread notifications"""
     return db.query(Notification).filter(Notification.is_read == False).order_by(Notification.created_at.desc()).all()
 
-@router.post("/notifications/mark-read")
+@router.post("/notifications/mark-read/")
 def mark_notifications_read(notificationIds: List[str] = None, all: bool = False, db: Session = Depends(get_db)):
     """Mark specific or all notifications as read"""
     query = db.query(Notification)

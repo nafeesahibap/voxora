@@ -68,6 +68,7 @@ class TaskBase(BaseModel):
     candidate: Optional[str] = None
     voice_created: str = "false"
     date: Optional[datetime] = None
+    deadline: Optional[datetime] = None
 
 class TaskCreate(TaskBase):
     pass
@@ -82,6 +83,7 @@ class TaskUpdate(BaseModel):
 class Task(TaskBase):
     id: str
     created_at: datetime
+    updated_at: Optional[datetime] = None
     model_config = {"from_attributes": True}
 
 class MatchReport(BaseModel):

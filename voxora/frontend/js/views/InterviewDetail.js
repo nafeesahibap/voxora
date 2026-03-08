@@ -33,9 +33,9 @@ export default {
                         <div>
                             <h4 style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.9rem;">ACTIONS</h4>
                             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                ${interview.status && interview.status.toLowerCase() === 'scheduled' && interview.zoom_link ?
-                `<a href="${interview.zoom_link}" target="_blank" class="action-btn" style="text-decoration: none; text-align: center; justify-content: center;">
-                                        <i class="ph-bold ph-video-camera"></i> Join Zoom Call
+                                ${interview.status && interview.status.toLowerCase() === 'scheduled' ?
+                `<a href="${interview.zoom_link || 'https://zoom.us/j/voxora-demo'}" target="_blank" class="action-btn" style="text-decoration: none; text-align: center; justify-content: center;">
+                                        <i class="ph-bold ph-video-camera"></i> Join Now
                                      </a>` : ''
             }
                                 <button class="btn-outline" onclick="window.router.navigateTo('/hr/interviews/live/${id}')">
