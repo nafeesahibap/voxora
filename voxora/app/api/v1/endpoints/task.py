@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -288,3 +289,17 @@ def handle_voice_intent(payload: dict = Body(...), db: Session = Depends(get_db)
 
     # Fallback / Unknown Intent
     return {"status": "error", "message": "I didn't understand the command."}
+=======
+from fastapi import APIRouter
+from app.models import schemas
+
+router = APIRouter()
+
+@router.post("/create")
+async def create_task(task: schemas.UserBase):
+    return {"status": "task_created"}
+
+@router.get("/list")
+async def list_tasks():
+    return [{"id": 1, "title": "Buy milk"}]
+>>>>>>> upstream/main

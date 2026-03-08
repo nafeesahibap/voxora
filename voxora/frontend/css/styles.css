@@ -767,6 +767,7 @@ body.layout-fullscreen .main-content {
 .progress-text {
     font-family: 'Roboto Mono';
     color: var(--accent-primary);
+    <<<<<<< HEAD
 }
 
 /* --- HR Dashboard Enhancements --- */

@@ -20,3 +20,5 @@ class Task(Base):
     owner_id = Column(Integer, ForeignKey("user.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    owner = relationship("User", back_populates="tasks")

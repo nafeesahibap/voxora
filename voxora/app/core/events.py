@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 def create_start_app_handler(app: FastAPI) -> Callable:
     async def start_app() -> None:
         logger.info("Starting up application...")
+<<<<<<< HEAD
         
         # Initialize DB
         from app.database.session import engine
@@ -17,6 +18,9 @@ def create_start_app_handler(app: FastAPI) -> Callable:
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created.")
 
+=======
+        # TODO: Initialize DB connection
+>>>>>>> upstream/main
         # TODO: Load ML models
         logger.info("Application startup complete.")
     return start_app

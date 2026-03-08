@@ -1,0 +1,10 @@
+# Development Config
+database:
+  type: sqlite
+  url: "sqlite:///./dev.db"
+
+logging:
+  level: DEBUG
+
+cors:
+  allow_all: true

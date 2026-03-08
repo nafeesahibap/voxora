@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const ROLES = {
     BUSINESS: 'business',
     HR: 'hr',
@@ -35,6 +36,12 @@ function register(name, email, role) {
     localStorage.setItem('voxora_user', JSON.stringify(user));
     localStorage.setItem('voxora_user_data', JSON.stringify(user));
     window.location.href = DASHBOARDS[role];
+=======
+function login(email) {
+    // Simulate API call
+    localStorage.setItem('voxora_user', JSON.stringify({ email: email, loggedIn: true }));
+    window.location.href = 'dashboard.html';
+>>>>>>> upstream/main
 }
 
 function logout() {
@@ -43,6 +50,7 @@ function logout() {
 }
 
 function checkAuthRoutes() {
+<<<<<<< HEAD
     const userJson = localStorage.getItem('voxora_user');
     let user = userJson ? JSON.parse(userJson) : null;
     const path = window.location.pathname;
@@ -80,6 +88,15 @@ function checkAuthRoutes() {
         if (!user) {
             window.location.href = 'index.html';
             return;
+=======
+    const user = localStorage.getItem('voxora_user');
+    const path = window.location.pathname;
+
+    // Protected Routes
+    if (path.includes('dashboard.html') || path.includes('calls.html')) {
+        if (!user) {
+            window.location.href = 'index.html'; // Redirect to Landing Page
+>>>>>>> upstream/main
         }
     }
 }
@@ -87,9 +104,14 @@ function checkAuthRoutes() {
 // Run immediately
 checkAuthRoutes();
 
+<<<<<<< HEAD
 // Handle DOM Events
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Handle Login Form
+=======
+// Handle Login Form
+document.addEventListener('DOMContentLoaded', () => {
+>>>>>>> upstream/main
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
@@ -97,6 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = loginForm.querySelector('button');
             const email = document.getElementById('email').value;
 
+<<<<<<< HEAD
+=======
+            // Loading state
+>>>>>>> upstream/main
             if (btn) btn.innerHTML = '<i class="ph-duotone ph-spinner-gap" style="animation:spin 1s infinite"></i> Verifying...';
 
             setTimeout(() => {
@@ -105,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+<<<<<<< HEAD
     // 2. Handle Register Form
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
@@ -135,6 +162,18 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             logout();
+=======
+    // FORCE LOGOUT on Landing Page to ensure full demo flow (Entry -> Login -> Dashboard)
+    if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+        localStorage.removeItem('voxora_user');
+        // Reset buttons to default state just in case
+        const signinBtns = document.querySelectorAll('.btn-enter, .btn-secondary-outline');
+        signinBtns.forEach(btn => {
+            if (btn.textContent.includes('Back to Dashboard')) {
+                btn.textContent = 'Sign In';
+                btn.href = 'login.html';
+            }
+>>>>>>> upstream/main
         });
     }
 });

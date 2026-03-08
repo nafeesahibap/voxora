@@ -42,13 +42,14 @@ def get_application() -> FastAPI:
         
         from fastapi.responses import FileResponse
         @application.get("/hr/{path:path}")
-        async def serve_spa(path: str):
+        async def serve_hr_spa(path: str):
             return FileResponse(os.path.join(frontend_path, "dashboard-hr.html"))
             
         @application.get("/apply")
         async def serve_apply():
             return FileResponse(os.path.join(frontend_path, "dashboard-hr.html"))
 
+        # Fallback for the new dashboard at root
         application.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
     return application

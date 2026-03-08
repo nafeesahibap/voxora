@@ -1,0 +1,15 @@
+{
+    "name": "voxora-root",
+    "version": "1.0.0",
+    "description": "Orchestration for Voxora project",
+    "scripts": {
+        "install-all": "npm.cmd install --legacy-peer-deps && cd voxora/frontend/v0-voxora-hr-dashboard && npm.cmd install --legacy-peer-deps",
+        "backend": "cd voxora && uvicorn app.main:app --reload",
+        "frontend-next": "cd voxora/frontend/v0-voxora-hr-dashboard && npm.cmd run dev",
+        "frontend-static": "cd voxora && uvicorn app.main:app --reload",
+        "dev": "concurrently \"npm.cmd run backend\" \"npm.cmd run frontend-next\""
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

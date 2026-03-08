@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Intelligence | Voxora Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=1.1">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .range-selectors {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .range-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .range-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .range-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .stock-stat-card {
+            text-align: center;
+        }
+
+        .stock-stat-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stock-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .price-up {
+            color: #10b981;
+        }
+
+        .price-down {
+            color: #f87171;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 3rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .search-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        #chartContainer {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        .error-msg {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid #f87171;
+            color: #f87171;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- LEFT PANEL -->
+        <aside class="left-panel">
+            <div class="brand">
+                <i class="ph-fill ph-waves"></i>
+                <span>VOXORA</span>
+            </div>
+
+            <div class="avatar-container">
+                <div class="avatar-halo"></div>
+                <img src="assets/avatar.png" alt="AI Avatar" class="avatar-img">
+            </div>
+
+            <div class="voice-status">
+                <div class="chat-bubble">
+                    “Analysing market trends for your portfolio, James.”
+                </div>
+
+                <div class="mic-btn-container">
+                    <div class="mic-btn-ring"></div>
+                    <div class="mic-btn">
+                        <i class="ph-fill ph-microphone"></i>
+                    </div>
+                </div>
+
+                <div class="status-text">Standby</div>
+            </div>
+        </aside>
+
+        <!-- TOP NAVIGATION BAR -->
+        <nav class="top-nav">
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="ph ph-squares-four"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="ph ph-users-three"></i> Meetings
+                </a>
+                <a href="booking.html" class="nav-item">
+                    <i class="ph ph-calendar-check"></i> Bookings
+                </a>
+                <a href="calls.html" class="nav-item">
+                    <i class="ph ph-phone-call"></i> Calls
+                </a>
+                <a href="data-intelligence.html" class="nav-item">
+                    <i class="ph ph-brain"></i> Data Intelligence
+                </a>
+                <a href="market.html" class="nav-item active">
+                    <i class="ph ph-chart-line-up"></i> Market
+                </a>
+                <a href="reports.html" class="nav-item">
+                    <i class="ph ph-scroll"></i> Reports
+                </a>
+                <a href="ai-itinerary.html" class="nav-item">
+                    <i class="ph ph-map-trifold"></i> AI Itinerary
+                </a>
+            </div>
+            <div class="nav-clock">
+                <span id="clock"></span>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Market Intelligence</h1>
+                <p class="page-subtitle">Real-time stock analytics and historical insights.</p>
+            </div>
+
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="symbolInput" placeholder="Enter stock symbol (e.g. AAPL, TSLA, BTC-USD)..."
+                        autocomplete="off">
+                </div>
+                <button id="searchBtn" class="neon-btn" style="margin-top:0; width: 140px;">
+                    <i class="ph ph-chart-line-up"></i> Analyze
+                </button>
+            </div>
+
+            <div id="errorMessage" class="error-msg"></div>
+
+            <div class="dashboard-grid">
+                <!-- Market Chart -->
+                <div class="card card-g-12">
+                    <div class="card-header">
+                        <h3 id="chartTitle">Market Performance (AAPL)</h3>
+                        <div class="range-selectors">
+                            <button class="range-btn active" data-range="1D">1D</button>
+                            <button class="range-btn" data-range="1W">1W</button>
+                            <button class="range-btn" data-range="1M">1M</button>
+                            <button class="range-btn" data-range="1Y">1Y</button>
+                        </div>
+                    </div>
+                    <div id="chartContainer">
+                        <canvas id="marketChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Price Card -->
+                <div class="card card-g-4 stock-stat-card">
+                    <div class="stock-stat-label">Current Price</div>
+                    <div id="stockPrice" class="stock-stat-val">--</div>
+                    <div class="stock-stat-label" id="stockCurrency">USD</div>
+                </div>
+
+                <!-- Change Card -->
+                <div class="card card-g-4 stock-stat-card">
+                    <div class="stock-stat-label">24h Change</div>
+                    <div id="stockChange" class="stock-stat-val">--</div>
+                    <div id="stockChangePct" style="font-size: 0.85rem; font-weight: 600;">--</div>
+                </div>
+
+                <!-- Volume Card -->
+                <div class="card card-g-4 stock-stat-card">
+                    <div class="stock-stat-label">Volume</div>
+                    <div id="stockVolume" class="stock-stat-val">--</div>
+                    <div class="stock-stat-label">Shares Traded Today</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/market.js?v=1.1"></script>
+    <script>
+        // Real-time clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+
+</html>
