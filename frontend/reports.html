@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Report Analyzer | Voxora Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=1.1">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section {
+            margin-bottom: 2rem;
+        }
+
+        .drop-zone {
+            width: 100%;
+            height: 200px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px dashed var(--border-subtle);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            background: rgba(6, 182, 212, 0.05);
+            border-color: var(--accent-primary);
+        }
+
+        .drop-zone i {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone p {
+            color: var(--text-secondary);
+            margin: 0.5rem 0;
+        }
+
+        .file-info {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-md);
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .analysis-controls {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+            animation: fade-in-up 0.5s ease;
+        }
+
+        .insight-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .alert-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            color: #fca5a5;
+        }
+
+        .demand-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            color: #6ee7b7;
+        }
+
+        .loader {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(6, 182, 212, 0.1);
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- LEFT PANEL -->
+        <aside class="left-panel">
+            <div class="brand">
+                <i class="ph-fill ph-waves"></i>
+                <span>VOXORA</span>
+            </div>
+
+            <div class="avatar-container">
+                <div class="avatar-halo"></div>
+                <img src="assets/avatar.png" alt="AI Avatar" class="avatar-img">
+            </div>
+
+            <div class="voice-status">
+                <div class="chat-bubble">
+                    “Upload a report, and I'll analyze it for you.”
+                </div>
+
+                <div class="mic-btn-container">
+                    <div class="mic-btn-ring"></div>
+                    <div class="mic-btn">
+                        <i class="ph-fill ph-microphone"></i>
+                    </div>
+                </div>
+
+                <div class="status-text">Listening...</div>
+            </div>
+        </aside>
+
+        <!-- TOP NAVIGATION BAR -->
+        <nav class="top-nav">
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="ph ph-squares-four"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="ph ph-users-three"></i> Meetings
+                </a>
+                <a href="booking.html" class="nav-item">
+                    <i class="ph ph-calendar-check"></i> Bookings
+                </a>
+                <a href="calls.html" class="nav-item">
+                    <i class="ph ph-phone-call"></i> Calls
+                </a>
+                <a href="data-intelligence.html" class="nav-item">
+                    <i class="ph ph-brain"></i> Data Intelligence
+                </a>
+                <a href="market.html" class="nav-item">
+                    <i class="ph ph-chart-line-up"></i> Market
+                </a>
+                <a href="reports.html" class="nav-item active">
+                    <i class="ph ph-scroll"></i> Reports
+                </a>
+                <a href="ai-itinerary.html" class="nav-item">
+                    <i class="ph ph-map-trifold"></i> AI Itinerary
+                </a>
+            </div>
+            <div class="nav-clock">
+                <span id="clock"></span>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <div class="report-header">
+                <div class="page-header">
+                    <h1 class="page-title">Business Report Analyzer</h1>
+                    <p class="page-subtitle">Extract instant insights from your PDF, DOCX, and TXT documents.</p>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <div id="dropZone" class="drop-zone">
+                    <i class="ph ph-cloud-arrow-up"></i>
+                    <h3>Upload Business Report</h3>
+                    <p>Drag and drop your file here, or click to browse</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Supported formats: PDF, DOCX, TXT</p>
+                    <input type="file" id="fileInput" hidden accept=".pdf,.docx,.txt">
+                </div>
+
+                <div id="fileInfo" class="file-info">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i class="ph ph-file-text" style="font-size: 1.5rem; color: var(--accent-primary);"></i>
+                        <div>
+                            <h4 id="fileName">report.pdf</h4>
+                            <p id="fileSize" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">2.4 MB</p>
+                        </div>
+                    </div>
+                    <button id="removeFile" class="btn btn-outline" style="padding: 0.5rem; border-color: transparent;">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="analysisControls" class="analysis-controls">
+                <button class="action-btn" onclick="runAnalysis('summary')">
+                    <i class="ph ph-article-ny-times"></i>
+                    Executive Summary
+                </button>
+                <button class="action-btn" onclick="runAnalysis('metrics')">
+                    <i class="ph ph-chart-bar"></i>
+                    Key Metrics
+                </button>
+                <button class="action-btn" onclick="runAnalysis('alerts')">
+                    <i class="ph ph-warning-octagon"></i>
+                    Alerts & Risks
+                </button>
+                <button class="action-btn" onclick="runAnalysis('demand')">
+                    <i class="ph ph-trend-up"></i>
+                    Demand Insights
+                </button>
+            </div>
+
+            <div id="loader" class="loader">
+                <div style="text-align: center;">
+                    <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+                    <p id="loadingText" style="color: var(--accent-primary); font-family: 'Roboto Mono';">Analyzing
+                        document...</p>
+                </div>
+            </div>
+
+            <div id="resultsSection" class="results-section">
+                <!-- Dynamic results will be injected here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="js/reports.js?v=1.1"></script>
+    <script>
+        // Real-time clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+
+</html>

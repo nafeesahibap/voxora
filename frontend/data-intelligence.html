@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Voxora | Data Intelligence</title>
+    <link rel="stylesheet" href="css/styles.css?v=1.1">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid var(--border-subtle);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background-color: var(--bg-panel);
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .feature-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            /* hidden initially */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+
+        <aside class="left-panel">
+            <div class="brand">
+                <i class="ph-fill ph-waves"></i>
+                <span>VOXORA</span>
+            </div>
+            <nav class="side-nav" style="margin-top: 2rem;">
+                <a href="dashboard.html" class="nav-item"
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                    <i class="ph ph-squares-four"></i> Dashboard
+                </a>
+                <a href="market.html" class="nav-item"
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                    <i class="ph ph-chart-line-up"></i> Market
+                </a>
+                <a href="booking.html" class="nav-item"
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                    <i class="ph ph-calendar-check"></i> Bookings
+                </a>
+                <a href="reports.html" class="nav-item"
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                    <i class="ph ph-scroll"></i> Reports
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+
+            <h1 class="page-title">Data Intelligence</h1>
+
+            <div class="card" id="uploadCard">
+                <h3>Upload Dataset</h3>
+
+                <form id="uploadForm" class="neon-form" style="margin-top: 1rem;" onsubmit="return false;">
+                    <input type="file" id="fileInput" accept=".csv" required />
+                    <button type="submit" class="neon-btn">
+                        Upload & Initialize
+                    </button>
+                </form>
+
+                <div id="uploadStatus" style="margin-top:1.5rem; color: var(--accent-primary); font-weight: 600;"></div>
+            </div>
+
+            <div class="feature-buttons" id="featureButtons">
+                <button id="btnSummary" class="neon-btn">AI Summary</button>
+                <button id="btnClean" class="neon-btn">Data Cleaning</button>
+                <button id="btnVisualize" class="neon-btn">Data Visualization</button>
+            </div>
+
+            <div class="card" id="resultCard" style="display: none; margin-top: 1.5rem;">
+                <h3 id="resultTitle" style="margin-bottom: 1rem; color: var(--accent-secondary);"></h3>
+                <div id="resultContent"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="js/data_intelligence.js?v=1.1"></script>
+
+</body>
+
+</html>

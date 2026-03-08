@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Voxora Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 2. LEFT PANEL – AI AVATAR & VOICE -->
+        <aside class="left-panel">
+            <div class="brand">
+                <i class="ph-fill ph-waves"></i>
+                <span>VOXORA</span>
+            </div>
+
+            <div class="avatar-container">
+                <div class="avatar-halo"></div>
+                <img src="assets/avatar.png" alt="AI Avatar" class="avatar-img">
+            </div>
+
+            <div class="voice-status">
+                <div class="chat-bubble">
+                    “Hi James, how can I assist you today?”
+                </div>
+
+                <div class="mic-btn-container">
+                    <div class="mic-btn-ring"></div>
+                    <div class="mic-btn">
+                        <i class="ph-fill ph-microphone"></i>
+                    </div>
+                </div>
+
+                <div class="status-text">Listening...</div>
+            </div>
+        </aside>
+
+        <!-- 1. TOP NAVIGATION BAR -->
+        <nav class="top-nav">
+            <div class="nav-links">
+                <a href="#" class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard</a>
+                <a href="#" class="nav-item"><i class="ph ph-users-three"></i> Meetings</a>
+                <a href="#" class="nav-item"><i class="ph ph-calendar-check"></i> Bookings</a>
+                <a href="calls.html" class="nav-item"><i class="ph ph-phone-call"></i> Calls</a>
+                <a href="#" class="nav-item"><i class="ph ph-chart-line-up"></i> Market</a>
+                <a href="#" class="nav-item"><i class="ph ph-scroll"></i> Reports</a>
+                <a href="#" class="nav-item"><i class="ph ph-shield-check"></i> Security</a>
+            </div>
+
+            <div class="user-area">
+                <div class="time-display" id="clock">10:42 AM</div>
+                <div class="user-profile">
+                    <div class="user-greeting">
+                        <h4>Good Morning, James</h4>
+                        <span>Premium Workspace</span>
+                    </div>
+                    <div class="profile-pic">
+                        <i class="ph-bold ph-user"></i>
+                    </div>
+                    <a href="index.html" style="color: var(--text-muted); font-size: 1.25rem;"><i
+                            class="ph ph-sign-out"></i></a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 3. MAIN CONTENT AREA -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Operational Overview</h1>
+                <p class="page-subtitle">Here is what's happening today in your workspace.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Upcoming Schedule -->
+                <div class="card card-g-4">
+                    <div class="card-header">
+                        <h3>Today's Schedule</h3>
+                        <i class="ph ph-dots-three"></i>
+                    </div>
+                    <div class="schedule-list">
+                        <div class="schedule-item">
+                            <div class="schedule-time">11:00</div>
+                            <div class="schedule-info">
+                                <h4>Q4 Strategy Review</h4>
+                                <p>Boardroom A • 4 Participants</p>
+                            </div>
+                        </div>
+                        <div class="schedule-item" style="border-left-color: var(--accent-primary)">
+                            <div class="schedule-time">13:30</div>
+                            <div class="schedule-info">
+                                <h4>Client Demo: Apex Corp</h4>
+                                <p>Virtual Meeting • Zoom</p>
+                            </div>
+                        </div>
+                        <div class="schedule-item" style="border-left-color: #ec4899">
+                            <div class="schedule-time">15:00</div>
+                            <div class="schedule-info">
+                                <h4>Team Sync</h4>
+                                <p>Huddle Room B</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Overview -->
+                <div class="card card-g-4">
+                    <div class="card-header">
+                        <h3>Task Completion</h3>
+                        <i class="ph ph-list-checks"></i>
+                    </div>
+                    <div class="task-circular">
+                        <!-- Simple SVG Circle simulation -->
+                        <svg width="120" height="120" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)"
+                                stroke-width="8" />
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-primary)" stroke-width="8"
+                                stroke-dasharray="314" stroke-dashoffset="75" transform="rotate(-90 60 60)" />
+                            <text x="60" y="65" text-anchor="middle" fill="#fff" font-size="24" font-weight="bold"
+                                font-family="sans-serif">76%</text>
+                        </svg>
+                    </div>
+                    <div class="task-stats">
+                        <div class="stat-item">
+                            <h2 style="color: var(--accent-secondary)">12</h2>
+                            <span>Pending</span>
+                        </div>
+                        <div class="stat-item">
+                            <h2 style="color: var(--accent-primary)">05</h2>
+                            <span>In Progress</span>
+                        </div>
+                        <div class="stat-item">
+                            <h2 style="color: #10b981">28</h2>
+                            <span>Done</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Notes -->
+                <div class="card card-g-4">
+                    <div class="card-header">
+                        <h3>AI Summaries</h3>
+                        <i class="ph ph-sparkle"></i>
+                    </div>
+                    <div class="schedule-item" style="background: transparent; border: none; padding-left: 0;">
+                        <i class="ph-fill ph-file-text" style="color: var(--text-muted); font-size: 1.5rem;"></i>
+                        <div class="schedule-info">
+                            <h4>Market Trends Q4</h4>
+                            <p>Generated 2h ago • Financials</p>
+                        </div>
+                    </div>
+                    <div class="schedule-item" style="background: transparent; border: none; padding-left: 0;">
+                        <i class="ph-fill ph-phone-call" style="color: var(--text-muted); font-size: 1.5rem;"></i>
+                        <div class="schedule-info">
+                            <h4>Call with Sarah J.</h4>
+                            <p>Generated 5h ago • Transcription</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline"
+                        style="width: 100%; margin-top: 1rem; border-color: var(--border-subtle); color: var(--text-secondary);">View
+                        All Logs</button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card card-g-12">
+                    <div class="card-header">
+                        <h3>Quick Actions</h3>
+                        <i class="ph ph-lightning"></i>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                        <button class="action-btn">
+                            <i class="ph ph-video-camera"></i>
+                            Join Meeting
+                        </button>
+                        <button class="action-btn">
+                            <i class="ph ph-plus-circle"></i>
+                            Create Task
+                        </button>
+                        <button class="action-btn">
+                            <i class="ph ph-phone-outgoing"></i>
+                            Make Call
+                        </button>
+                        <button class="action-btn">
+                            <i class="ph ph-file-text"></i>
+                            Gen Report
+                        </button>
+                    </div>
+                </div>
+                <!-- PPT Widget -->
+                <div class="card card-g-12">
+                    <div class="card-header">
+                        <h3>AI Presentation Generator</h3>
+                        <i class="ph ph-presentation-chart"></i>
+                    </div>
+                    <div class="ppt-container">
+                        <div class="ppt-input-area">
+                            <p style="color: var(--text-muted); margin-bottom: 0.5rem;">Describe your presentation
+                                topic:</p>
+                            <textarea id="pptPrompt" class="ppt-textarea"
+                                placeholder="E.g., Quarterly Financial Review for Stakeholders..."></textarea>
+                            <button onclick="startGeneration()" class="btn-full"
+                                style="width: auto; padding: 0.75rem 2rem;">
+                                <i class="ph ph-magic-wand"></i> Generate Deck
+                            </button>
+                        </div>
+
+                        <div class="ppt-viewer">
+                            <div class="progress-overlay" style="display: none;">
+                                <div class="mic-btn-ring" style="position: relative; width: 50px; height: 50px;"></div>
+                                <span class="progress-text">Initializing...</span>
+                            </div>
+                            <div class="slides-wrapper">
+                                <!-- Slides injected here -->
+                            </div>
+                            <!-- Controls overlay on bottom -->
+                            <div
+                                style="position: absolute; bottom: 1rem; width: 100%; display: flex; justify-content: center; gap: 1rem;">
+                                <button onclick="window.pptEngine.prev()" class="control-btn"><i
+                                        class="ph-bold ph-caret-left"></i></button>
+                                <button onclick="window.pptEngine.next()" class="control-btn"><i
+                                        class="ph-bold ph-caret-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/voice_engine.js"></script>
+    <script src="js/ppt_engine.js"></script>
+    <script>
+        // Real-time clock
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Nav Active State Toggle (Simple Mock)
+        // Nav Active State Toggle (Simple Mock)
+        // document.querySelectorAll('.nav-item').forEach(item => {
+        //     item.addEventListener('click', (e) => {
+        //         // Navigation logic handled by browser
+        //     });
+        // });
+    </script>
+</body>
+
+</html>
