@@ -163,7 +163,11 @@ def handle_voice_intent(payload: dict = Body(...), db: Session = Depends(get_db)
             raise HTTPException(status_code=422, detail=f"Failed to create task after priority check: {str(e)}")
 
     # 2. NLP Intent Detection (Simulated via string matching for production-level API proxy)
-    is_add_cmd = text.startswith("add ") or text.startswith("remind me to ")
+    is_add_cmd = any(text.startswith(p) for p in ["add ", "remind me to ", "create task", "create a task", "new task", "make a task", "schedule "])
+    
+    # Very permissive fall-through: if it's long enough and doesn't look like a "show" command, treat it as a task
+    if not is_add_cmd and len(text.split()) > 2 and not any(p in text for p in ["show", "go to", "open"]):
+        is_add_cmd = True
     
     is_done_cmd = False
     target_done_title = ""
@@ -215,9 +219,23 @@ def handle_voice_intent(payload: dict = Body(...), db: Session = Depends(get_db)
     # ---- INTENT: CREATE_TASK ---- #
     if is_add_cmd:
         raw_title = text
-        if raw_title.startswith("add task "): raw_title = raw_title[len("add task "):]
-        elif raw_title.startswith("add "): raw_title = raw_title[len("add "):]
-        elif raw_title.startswith("remind me to "): raw_title = raw_title[len("remind me to "):]
+        prefixes = [
+            "add task to ", "add task ", "add a task to ", "add a task ", "add ",
+            "remind me to ", "create a task to ", "create a task ", "create task to ", "create task ",
+            "new task to ", "new task ", "make a task to ", "make a task ", "schedule a task to ", "schedule a task ", "schedule "
+        ]
+        for p in prefixes:
+            if raw_title.startswith(p):
+                raw_title = raw_title[len(p):]
+                break
+        
+        # If the title is too short or empty after stripping, use the original text
+        if len(raw_title.strip()) < 2:
+            raw_title = text.capitalize()
+        else:
+            raw_title = raw_title.capitalize()
+            
+        title = raw_title.strip()
         
         priority = None
         if "high priority" in raw_title:

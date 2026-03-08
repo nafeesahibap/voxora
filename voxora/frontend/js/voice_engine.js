@@ -15,13 +15,15 @@ class VoiceEngine {
     init() {
         if ('webkitSpeechRecognition' in window) {
             this.recognition = new webkitSpeechRecognition();
-            this.recognition.continuous = true;
+            this.recognition.continuous = false; // Stop when the user pauses
             this.recognition.interimResults = true;
 
+            this.recognition.lang = 'en-US';
             this.recognition.onstart = () => this.onStart();
             this.recognition.onend = () => this.onEnd();
             this.recognition.onresult = (event) => this.onResult(event);
             this.recognition.onerror = (event) => this.onError(event);
+            console.log("VoiceEngine: webkitSpeechRecognition initialized.");
 
             // Bind click - removed from VoiceEngine, handled by components like Sidebar.js
             /*
@@ -44,11 +46,22 @@ class VoiceEngine {
     }
 
     start() {
+        console.log("VoiceEngine: Attempting to start listening...");
         if (this.recognition) {
-            this.transcript = "";
-            this.recognition.start();
-            // Cancel any current speaking
-            this.synth.cancel();
+            try {
+                this.transcript = "";
+                this.recognition.start();
+                // Cancel any current speaking
+                this.synth.cancel();
+            } catch (err) {
+                console.warn("VoiceEngine: Recognition already started or failed to start:", err);
+                if (err.name === 'InvalidStateError') {
+                    // Try to stop first if it's already running
+                    this.stop();
+                }
+            }
+        } else {
+            console.error("VoiceEngine: Recognition not supported.");
         }
     }
 
@@ -110,9 +123,18 @@ class VoiceEngine {
     }
 
     onError(event) {
-        console.error("Speech Error", event.error);
+        console.error("VoiceEngine: Speech Error", event.error);
         this.statusText.textContent = "ERROR";
         this.isListening = false;
+
+        if (event.error === 'not-allowed') {
+            if (this.chatBubble) this.chatBubble.textContent = "Microphone permission denied. Please allow mic access in your browser.";
+            if (window.showToast) window.showToast("Microphone permission denied", "error");
+        } else if (event.error === 'no-speech') {
+            console.warn("VoiceEngine: No speech detected.");
+            this.statusText.textContent = "STANDBY";
+            if (this.chatBubble) this.chatBubble.textContent = "I didn't hear anything. Try again?";
+        }
     }
 
     async processInput(text) {
@@ -127,9 +149,9 @@ class VoiceEngine {
             this.updateHrDashboardTaskWidgets();
         };
 
-        const speakWithStatus = (message) => {
+        const speakWithStatus = (message, onComplete = null) => {
             this.statusText.textContent = "SPEAKING...";
-            this.speak(message);
+            this.speak(message, onComplete);
         };
 
         const fail = (message) => {
@@ -189,12 +211,11 @@ class VoiceEngine {
             // Handle Multi-Turn Priority check
             if (data.status === 'awaiting_input') {
                 this.currentSessionId = data.session_id;
-                speakWithStatus(data.tts_prompt);
 
-                // Automatically keep microphone open to capture the priority
-                setTimeout(() => {
+                // Automatically keep microphone open to capture the priority AFTER it finishes speaking
+                speakWithStatus(data.tts_prompt, () => {
                     this.start();
-                }, 2000); // give it time to speak the prompt
+                });
                 return;
             }
 
@@ -279,8 +300,11 @@ class VoiceEngine {
 
 
 
-    speak(text) {
-        if (!this.synth) return;
+    speak(text, onComplete = null) {
+        if (!this.synth) {
+            if (onComplete) onComplete();
+            return;
+        }
 
         const utterThis = new SpeechSynthesisUtterance(text);
 
@@ -291,6 +315,7 @@ class VoiceEngine {
 
         utterThis.onend = () => {
             this.statusText.textContent = "STANDBY";
+            if (onComplete) onComplete();
         };
 
         this.synth.speak(utterThis);
@@ -302,8 +327,9 @@ class VoiceEngine {
 }
 
 // Initialize
-const initVoiceEngine = () => {
+window.initVoiceEngine = () => {
     if (window.voiceEngine) return;
+    console.log("VoiceEngine: Creating instance...");
     window.voiceEngine = new VoiceEngine();
 };
 
