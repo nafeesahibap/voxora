@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -44,10 +43,12 @@ def create_task(task: dict = Body(...), db: Session = Depends(get_db)):
         payload["status"] = "pending"
     if not payload.get("priority"):
         payload["priority"] = "medium"
+    if not payload.get("category"):
+        payload["category"] = "general"
 
     if "voice_created" in payload:
         vc = payload.get("voice_created")
-        payload["voice_created"] = "true" if vc in (True, "true") else "false"
+        payload["voice_created"] = "true" if vc in (True, "true", "True") else "false"
     else:
         payload["voice_created"] = "false"
 
@@ -270,6 +271,7 @@ def handle_voice_intent(payload: dict = Body(...), db: Session = Depends(get_db)
                 title=title,
                 priority=priority,
                 status="pending",
+                category="general",
                 voice_created="true",
                 date=datetime.utcnow()
             )
@@ -289,17 +291,3 @@ def handle_voice_intent(payload: dict = Body(...), db: Session = Depends(get_db)
 
     # Fallback / Unknown Intent
     return {"status": "error", "message": "I didn't understand the command."}
-=======
-from fastapi import APIRouter
-from app.models import schemas
-
-router = APIRouter()
-
-@router.post("/create")
-async def create_task(task: schemas.UserBase):
-    return {"status": "task_created"}
-
-@router.get("/list")
-async def list_tasks():
-    return [{"id": 1, "title": "Buy milk"}]
->>>>>>> upstream/main

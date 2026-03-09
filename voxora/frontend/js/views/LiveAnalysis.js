@@ -138,19 +138,22 @@ export default {
             window.showToast("Moment Flagged for Review", "error");
         };
 
-        window.endInterview = (id) => {
+        window.endInterview = async (id) => {
             if (confirm("End interview and generate report?")) {
-                // Update status in store (mock)
-                const interview = Store.state.interviews?.find(i => i.id == id);
-                if (interview) {
-                    interview.status = 'Completed';
-                    Store.notify(); // Persist simple change
-                }
+                window.showToast("Finalizing Interview...", "info");
 
-                window.showToast("Generating Report...", "success");
-                setTimeout(() => {
-                    window.router.navigateTo(`/hr/interviews/report/${id}`);
-                }, 1500);
+                const transcript = document.getElementById('transcript-container')?.innerText || "";
+
+                const success = await Store.completeInterview(id, transcript);
+
+                if (success) {
+                    window.showToast("Report Generated Successfully", "success");
+                    setTimeout(() => {
+                        window.router.navigateTo(`/hr/interviews/report/${id}`);
+                    }, 1000);
+                } else {
+                    window.showToast("Failed to save interview data.", "error");
+                }
             }
         };
     }

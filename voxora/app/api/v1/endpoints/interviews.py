@@ -41,6 +41,21 @@ def update_interview(interview_id: int, interview_in: InterviewUpdate, db: Sessi
     db.refresh(interview)
     return interview
 
+@router.patch("/{interview_id}", response_model=InterviewSchema)
+def patch_interview(interview_id: int, interview_in: InterviewUpdate, db: Session = Depends(get_db)):
+    interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    
+    update_data = interview_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(interview, field, value)
+    
+    db.add(interview)
+    db.commit()
+    db.refresh(interview)
+    return interview
+
 @router.delete("/{interview_id}")
 def delete_interview(interview_id: int, db: Session = Depends(get_db)):
     interview = db.query(Interview).filter(Interview.id == interview_id).first()

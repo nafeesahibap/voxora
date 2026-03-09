@@ -181,20 +181,30 @@ export const Store = {
 
     async updateInterview(id, updates) {
         try {
-            const response = await fetch(`/api/v1/interviews/${id}/`, {
-                method: 'PUT',
+            const response = await fetch(`/api/v1/interviews/${id}`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
             });
             if (response.ok) {
                 const updated = await response.json();
-                const index = this.state.interviews.findIndex(i => i.id === id);
+                const index = this.state.interviews.findIndex(i => i.id == id);
                 if (index !== -1) {
                     this.state.interviews[index] = updated;
                     this.notify();
                 }
+                return updated;
             }
-        } catch (err) { console.error("Update interview error:", err); }
+        } catch (err) { console.error("Update interview error:", err); return null; }
+    },
+
+    async completeInterview(id, notes = "") {
+        return this.updateInterview(id, {
+            status: 'Completed',
+            notes: notes,
+            sentiment_score: 0.85, // Mock value
+            match_score: 90 // Mock value
+        });
     },
 
     async deleteInterview(id) {

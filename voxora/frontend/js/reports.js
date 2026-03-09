@@ -1,256 +1,178 @@
-/**
- * Reports – Academic Analytics: records, trend chart, comparison chart, insights
- */
+let currentFileId = null;
 
-(function () {
-    'use strict';
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const removeFile = document.getElementById('removeFile');
+const analysisControls = document.getElementById('analysisControls');
+const resultsSection = document.getElementById('resultsSection');
+const loader = document.getElementById('loader');
 
-    var STORAGE_RECORDS = 'voxora_academic_records';
+// Drag and drop events
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+});
 
-    function getRecords() {
-        try {
-            var raw = localStorage.getItem(STORAGE_RECORDS);
-            return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            return [];
-        }
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
+});
+
+dropZone.addEventListener('drop', handleDrop, false);
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
+
+async function handleFiles(files) {
+    if (files.length === 0) return;
+    const file = files[0];
+
+    // Validate file type
+    const validExtensions = ['.pdf', '.docx', '.txt'];
+    const extension = '.' + file.name.split('.').pop().toLowerCase();
+
+    if (!validExtensions.includes(extension)) {
+        alert('Please upload a PDF, DOCX, or TXT file.');
+        return;
     }
 
-    function setRecords(arr) {
-        localStorage.setItem(STORAGE_RECORDS, JSON.stringify(arr));
-    }
+    fileName.textContent = file.name;
+    fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
 
-    function uniqueSubjects(records) {
-        var set = {};
-        records.forEach(function (r) {
-            if (r.subject) set[r.subject] = true;
-        });
-        return Object.keys(set).sort();
-    }
+    // Show loading state for upload
+    dropZone.style.display = 'none';
+    fileInfo.style.display = 'flex';
 
-    function updateSubjectDatalist() {
-        var records = getRecords();
-        var subjects = uniqueSubjects(records);
-        var list = document.getElementById('subjectList');
-        if (!list) return;
-        list.innerHTML = subjects.map(function (s) {
-            return '<option value="' + escapeHtml(s) + '">';
-        }).join('');
-    }
+    const formData = new FormData();
+    formData.append('file', file);
 
-    function escapeHtml(s) {
-        if (!s) return '';
-        var div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
-    }
-
-    // Form
-    document.getElementById('recordForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        var marks = parseFloat(document.getElementById('recordMarks').value, 10);
-        var total = parseFloat(document.getElementById('recordTotal').value, 10);
-        if (total <= 0) return;
-        var percentage = Math.round((marks / total) * 100);
-        var records = getRecords();
-        var record = {
-            id: Date.now(),
-            subject: document.getElementById('recordSubject').value.trim(),
-            examType: document.getElementById('recordExamType').value,
-            marks: marks,
-            total: total,
-            percentage: percentage
-        };
-        records.push(record);
-        setRecords(records);
-        document.getElementById('recordForm').reset();
-        updateSubjectDatalist();
-        updateTrendSubjectDropdown();
-        renderTrendChart();
-        renderComparisonChart();
-        renderInsights();
-    });
-
-    function updateTrendSubjectDropdown() {
-        var subjects = uniqueSubjects(getRecords());
-        var sel = document.getElementById('trendSubject');
-        if (!sel) return;
-        var v = sel.value;
-        sel.innerHTML = subjects.length ? subjects.map(function (s) {
-            return '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>';
-        }).join('') : '<option value="">No subjects yet</option>';
-        if (subjects.indexOf(v) !== -1) sel.value = v;
-        else if (subjects.length) sel.value = subjects[0];
-    }
-
-    var EXAM_TYPE_ORDER = ['Internal 1', 'Internal 2', 'Model', 'Semester'];
-
-    function examTypeIndex(examType) {
-        var i = EXAM_TYPE_ORDER.indexOf(examType);
-        return i === -1 ? 999 : i;
-    }
-
-    function sortByExamTypeOrder(records) {
-        return records.slice().sort(function (a, b) {
-            return examTypeIndex(a.examType) - examTypeIndex(b.examType);
-        });
-    }
-
-    var trendChartInstance = null;
-
-    function renderTrendChart() {
-        var records = getRecords();
-        var subject = (document.getElementById('trendSubject') || {}).value || '';
-        var filtered = subject ? records.filter(function (r) { return r.subject === subject; }) : records;
-        filtered = sortByExamTypeOrder(filtered);
-
-        var canvas = document.getElementById('trendChart');
-        if (!canvas || typeof Chart === 'undefined') return;
-
-        var ctx = canvas.getContext('2d');
-        if (trendChartInstance) trendChartInstance.destroy();
-
-        var labels = filtered.map(function (r) { return r.examType; });
-        var data = filtered.map(function (r) { return r.percentage; });
-
-        trendChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Percentage',
-                    data: data,
-                    borderColor: '#a5b4fc',
-                    backgroundColor: 'rgba(165, 180, 252, 0.15)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 100,
-                        ticks: { color: '#94a3b8', callback: function (v) { return v + '%'; } },
-                        grid: { color: 'rgba(255,255,255,0.06)' }
-                    },
-                    x: {
-                        ticks: { color: '#94a3b8', maxRotation: 45 },
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-    }
-
-    var comparisonChartInstance = null;
-
-    function renderComparisonChart() {
-        var records = getRecords();
-        var bySubject = {};
-        records.forEach(function (r) {
-            if (!bySubject[r.subject]) bySubject[r.subject] = [];
-            bySubject[r.subject].push(r.percentage);
-        });
-        var subjects = Object.keys(bySubject).sort();
-        var averages = subjects.map(function (s) {
-            var arr = bySubject[s];
-            return Math.round(arr.reduce(function (a, b) { return a + b; }, 0) / arr.length);
+    try {
+        const response = await fetch('/api/v1/reports/upload', {
+            method: 'POST',
+            body: formData
         });
 
-        var canvas = document.getElementById('comparisonChart');
-        if (!canvas || typeof Chart === 'undefined') return;
+        if (!response.ok) throw new Error('Upload failed');
 
-        var ctx = canvas.getContext('2d');
-        if (comparisonChartInstance) comparisonChartInstance.destroy();
+        const data = await response.json();
+        currentFileId = data.file_id;
 
-        var colors = ['#a5b4fc', '#f9a8d4', '#86efac', '#c4b5fd', '#fcd34d', '#7dd3fc'];
+        // Show analysis controls
+        analysisControls.style.display = 'grid';
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        alert('File upload failed. Please try again.');
+        resetUI();
+    }
+}
 
-        comparisonChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: subjects,
-                datasets: [{
-                    label: 'Average %',
-                    data: averages,
-                    backgroundColor: subjects.map(function (_, i) { return colors[i % colors.length]; }),
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 100,
-                        ticks: { color: '#94a3b8', callback: function (v) { return v + '%'; } },
-                        grid: { color: 'rgba(255,255,255,0.06)' }
-                    },
-                    x: {
-                        ticks: { color: '#94a3b8', maxRotation: 45 },
-                        grid: { display: false }
-                    }
-                }
-            }
+removeFile.addEventListener('click', () => {
+    resetUI();
+});
+
+function resetUI() {
+    currentFileId = null;
+    currentFileName = null;
+    dropZone.style.display = 'flex';
+    fileInfo.style.display = 'none';
+    analysisControls.style.display = 'none';
+    resultsSection.style.display = 'none';
+    resultsSection.innerHTML = '';
+}
+
+async function runAnalysis(type) {
+    if (!currentFileId) return;
+
+    // Clear previous results and show loader
+    resultsSection.style.display = 'none';
+    loader.style.display = 'flex';
+
+    try {
+        const response = await fetch(`/api/v1/reports/analyze/${currentFileId}/${type}`);
+        if (!response.ok) throw new Error('Analysis failed');
+
+        const data = await response.json();
+        renderResults(type, data);
+    } catch (error) {
+        console.error('Analysis error:', error);
+        alert('Analysis failed. Please try again.');
+    } finally {
+        loader.style.display = 'none';
+    }
+}
+
+function renderResults(type, data) {
+    resultsSection.innerHTML = '';
+    resultsSection.style.display = 'block';
+
+    const card = document.createElement('div');
+    card.className = 'insight-card';
+
+    let html = `<h2 style="color: var(--accent-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="${getIcon(type)}"></i> ${data.title}
+                </h2>`;
+
+    if (type === 'summary') {
+        html += `<p style="line-height: 1.8; margin-bottom: 2rem; font-size: 1.1rem;">${data.content}</p>`;
+        html += `<h4 style="margin-bottom: 1rem;">Key Highlights</h4>`;
+        html += `<ul style="list-style: none; padding: 0;">`;
+        data.highlights.forEach(h => {
+            html += `<li style="margin-bottom: 0.75rem; display: flex; gap: 0.75rem;">
+                        <i class="ph ph-check-circle" style="color: var(--accent-primary); margin-top: 0.25rem;"></i>
+                        <span>${h}</span>
+                    </li>`;
+        });
+        html += `</ul>`;
+    } else if (type === 'metrics') {
+        html += `<div class="metrics-grid">`;
+        data.metrics.forEach(m => {
+            html += `<div class="metric-item">
+                        <div class="metric-value">${m.value}</div>
+                        <div class="metric-label">${m.label}</div>
+                    </div>`;
+        });
+        html += `</div>`;
+    } else if (type === 'alerts') {
+        data.alerts.forEach(a => {
+            html += `<div class="alert-item">
+                        <i class="ph ph-warning-octagon" style="font-size: 1.5rem;"></i>
+                        <span>${a}</span>
+                    </div>`;
+        });
+    } else if (type === 'demand') {
+        data.insights.forEach(i => {
+            html += `<div class="demand-item">
+                        <i class="ph ph-trend-up" style="font-size: 1.5rem;"></i>
+                        <span>${i}</span>
+                    </div>`;
         });
     }
 
-    function renderInsights() {
-        var records = getRecords();
-        var bySubject = {};
-        records.forEach(function (r) {
-            if (!bySubject[r.subject]) bySubject[r.subject] = [];
-            bySubject[r.subject].push(r);
-        });
-        var insights = [];
-        Object.keys(bySubject).forEach(function (subject) {
-            var arr = sortByExamTypeOrder(bySubject[subject]);
-            var avg = arr.reduce(function (s, r) { return s + r.percentage; }, 0) / arr.length;
-            if (arr.length >= 2) {
-                var latest = arr[arr.length - 1].percentage;
-                var prev = arr[arr.length - 2].percentage;
-                var diff = latest - prev;
-                if (diff > 0) {
-                    insights.push({ type: 'improvement', msg: 'Improved by ' + diff + '% in ' + subject + '.', icon: '📈' });
-                } else if (diff < 0) {
-                    insights.push({ type: 'warning', msg: 'Performance dropped by ' + Math.abs(diff) + '% compared to last exam in ' + subject + '.', icon: '⚠️' });
-                }
-            }
-            if (avg < 70) {
-                insights.push({ type: 'suggestion', msg: subject + ' needs attention (avg below 70%).', icon: '💡' });
-            }
-        });
+    card.innerHTML = html;
+    resultsSection.appendChild(card);
+}
 
-        var box = document.getElementById('insightsBox');
-        if (!box) return;
-        if (!insights.length) {
-            box.innerHTML = '<p class="reports-insight reports-insight--empty">Add records to see insights.</p>';
-            return;
-        }
-        box.innerHTML = insights.map(function (i) {
-            return '<div class="reports-insight reports-insight--' + i.type + '">' +
-                '<span class="reports-insight__icon">' + i.icon + '</span>' +
-                '<p class="reports-insight__text">' + escapeHtml(i.msg) + '</p></div>';
-        }).join('');
+function getIcon(type) {
+    switch (type) {
+        case 'summary': return 'ph ph-article-ny-times';
+        case 'metrics': return 'ph ph-chart-bar';
+        case 'alerts': return 'ph ph-warning-octagon';
+        case 'demand': return 'ph ph-trend-up';
+        default: return 'ph ph-info';
     }
-
-    document.getElementById('trendSubject').addEventListener('change', renderTrendChart);
-
-    // Init
-    updateSubjectDatalist();
-    updateTrendSubjectDropdown();
-    renderTrendChart();
-    renderComparisonChart();
-    renderInsights();
-})();
+}
